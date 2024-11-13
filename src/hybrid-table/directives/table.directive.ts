@@ -2,7 +2,6 @@ import {
   AfterContentInit,
   ContentChildren,
   Directive,
-  ElementRef,
   HostBinding,
   OnChanges,
   OnDestroy,
@@ -13,9 +12,8 @@ import {
 import { HybridColumnDefDirective } from './column.directive';
 import { Subject, takeUntil } from 'rxjs';
 
-import { convertCellTemplate, convertHeaderCellTemplate } from '../utils';
-import type { SimpleCustomTableColumn } from '../../webcomponents/simple-custom-table.model';
-import { SimpleCustomTable } from '../../webcomponents/simple-custom-table';
+import { convertCellTemplate, convertHeaderCellTemplate } from '../view-attacher';
+import type { SimpleCustomTableColumn, SimpleCustomTableItem } from '../../webcomponents/simple-custom-table.model';
 
 @Directive({ selector: '[hybrid-table]' })
 export class HybridTableDirective implements AfterContentInit, OnDestroy, OnChanges {
@@ -26,7 +24,7 @@ export class HybridTableDirective implements AfterContentInit, OnDestroy, OnChan
     HybridColumnDefDirective<
       {},
       {
-        $implicit: Record<string, unknown>;
+        $implicit: SimpleCustomTableItem;
       }
     >
   >;
@@ -35,7 +33,7 @@ export class HybridTableDirective implements AfterContentInit, OnDestroy, OnChan
     return this._columns;
   }
 
-  constructor(private vcr: ViewContainerRef, private elementRef: ElementRef<SimpleCustomTable>) {}
+  constructor(private vcr: ViewContainerRef) {}
 
   ngAfterContentInit() {
     this.reloadColumns();

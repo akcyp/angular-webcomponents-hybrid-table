@@ -3,6 +3,7 @@ import { SimpleCustomTableColumn } from '../webcomponents/simple-custom-table.mo
 import { HybridTableModule } from '../hybrid-table/hybrid-table.module';
 
 export interface PeriodicElement {
+  id: string;
   name: string;
   position: number;
   weight: number;
@@ -10,16 +11,16 @@ export interface PeriodicElement {
 }
 
 const ELEMENT_DATA: PeriodicElement[] = [
-  { position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
-  { position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
-  { position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
-  { position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
-  { position: 5, name: 'Boron', weight: 10.811, symbol: 'B' },
-  { position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C' },
-  { position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N' },
-  { position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O' },
-  { position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F' },
-  { position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne' },
+  { id: 'H', position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
+  { id: 'He', position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
+  { id: 'Li', position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
+  { id: 'Be', position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
+  { id: 'B', position: 5, name: 'Boron', weight: 10.811, symbol: 'B' },
+  { id: 'C', position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C' },
+  { id: 'N', position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N' },
+  { id: 'O', position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O' },
+  { id: 'F', position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F' },
+  { id: 'Ne', position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne' },
 ];
 
 @Component({
@@ -42,10 +43,10 @@ export class AppComponent {
     },
     {
       prop: 'name',
+      header: 'Name',
       renderHeader: () => {
         const header = document.createElement('th');
         header.style.color = 'lime';
-        header.appendChild(document.createTextNode('Name'));
         return header;
       },
     },
@@ -54,9 +55,11 @@ export class AppComponent {
       header: 'Weight',
       renderCell: (item, rowIndex) => {
         const td = document.createElement('td');
-        const value = (item['weight'] as number)?.toFixed(2);
-        td.appendChild(document.createTextNode(value));
         return td;
+      },
+      updateCell: (item, rowIndex, cell) => {
+        const value = (item['weight'] as number)?.toFixed(2);
+        cell.replaceChildren(document.createTextNode(value));
       },
     },
     {

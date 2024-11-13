@@ -1,69 +1,114 @@
-import { createElementWithContent } from './simple-custom-table.utils';
-
 import type {
   SimpleCustomTableColumn,
   SimpleCustomTableItem,
   SimpleCustomTableProps,
+  TableDOM,
 } from './simple-custom-table.model';
+
+import { diffArrayOfObject } from './utils/diff';
+import {
+  createTableCell,
+  createTableHeader,
+  destroyTableCell,
+  destroyTableHeader,
+  updateTableCell,
+  updateTableHeader,
+} from './utils/dom-table-utils';
+import { insertChildAtIndex } from './utils/insert-child-at-index';
 
 export class SimpleCustomTable extends HTMLElement {
   #shadow: ShadowRoot;
-  #columnsContainer?: HTMLTableSectionElement;
+  #columnsContainer?: HTMLTableRowElement;
   #dataRowsContainer?: HTMLTableSectionElement;
   #props: SimpleCustomTableProps = {
     columns: [],
     data: [],
   };
 
-  #createTableHeader(column: SimpleCustomTableColumn) {
-    const $th = column.renderHeader ? column.renderHeader() : createElementWithContent('th', column.header);
-    column.updateHeader?.($th);
-    return $th;
+  #dom: TableDOM = {
+    headers: [],
+    rows: [],
+  };
+
+  private updateColumns(oldColumns: SimpleCustomTableColumn[], newColumns: SimpleCustomTableColumn[]) {
+    const diff = diffArrayOfObject('prop', oldColumns, newColumns);
+
+    diff.removed.forEach(({ ref, value }) => {
+      const index = this.#dom.headers.findIndex((header) => header.prop === ref);
+      const header = this.#dom.headers[index];
+      destroyTableHeader(header.$, value);
+      this.#dom.headers.splice(index, 1);
+      this.#columnsContainer?.removeChild(header.$);
+
+      this.#dom.rows.forEach((row) => {
+        row.cells;
+      });
+    });
+
+    diff.updated.forEach(({ ref, value }) => {
+      const index = this.#dom.headers.findIndex((header) => header.prop === ref);
+      const header = this.#dom.headers[index];
+      updateTableHeader(header.$, value);
+    });
+
+    diff.added.forEach(({ ref, index, value }) => {
+      const $th = createTableHeader(value);
+      this.#dom.headers.splice(index, 0, {
+        prop: ref,
+        $: $th,
+      });
+      insertChildAtIndex(this.#columnsContainer!, $th, index);
+      // Call updates
+      updateTableHeader($th, value);
+    });
+
+    // TODO: update table rows after columns update
   }
 
-  #createTableHeaders() {
-    const $tr = document.createElement('tr');
-    for (const column of this.#props.columns) {
-      const headerElement = this.#createTableHeader(column);
-      $tr.appendChild(headerElement);
-    }
-    return $tr;
-  }
+  private updateRows(oldRows: SimpleCustomTableItem[], newRows: SimpleCustomTableItem[]) {
+    const diff = diffArrayOfObject('id', oldRows, newRows);
 
-  #createTableCell(column: SimpleCustomTableColumn, rowIndex: number, value: SimpleCustomTableItem) {
-    const $td = column.renderCell
-      ? column.renderCell(value, rowIndex)
-      : createElementWithContent('td', value[column.prop]);
+    diff.removed.forEach(({ ref }) => {
+      const index = this.#dom.rows.findIndex((row) => row.id === ref);
+      const row = this.#dom.rows[index];
+      row.cells.forEach((cell) => {
+        const column = this.#props.columns.find((column) => column.prop === cell.prop)!;
+        destroyTableCell(cell.$, column);
+      });
+      this.#dom.rows.splice(index, 1);
+      this.#dataRowsContainer?.removeChild(row.$);
+    });
 
-    column.updateCell?.(value, rowIndex, $td);
+    diff.updated.forEach(({ ref, value, index: rowIndex }) => {
+      const index = this.#dom.rows.findIndex((row) => row.id === ref);
+      const row = this.#dom.rows[index];
+      row.cells.forEach((cell) => {
+        const column = this.#props.columns.find((column) => column.prop === cell.prop)!;
+        updateTableCell(cell.$, column, value, rowIndex);
+      });
+    });
 
-    return $td;
-  }
+    diff.added.forEach(({ ref, index, value }) => {
+      const $tr = document.createElement('tr');
+      insertChildAtIndex(this.#dataRowsContainer!, $tr, index);
 
-  #createTableRow(data: SimpleCustomTableItem, rowIndex: number) {
-    const $tr = document.createElement('tr');
-    $tr.setAttribute('data-rowIndex', rowIndex.toString());
-    for (const column of this.#props.columns) {
-      const cellElement = this.#createTableCell(column, rowIndex, data);
-      $tr.appendChild(cellElement);
-    }
-    return $tr;
-  }
+      const cells = this.#props.columns.map((column) => {
+        const $td = createTableCell(column, index, value);
+        $tr.appendChild($td);
+        // call update
+        updateTableCell($td, column, value, index);
+        return {
+          prop: column.prop,
+          $: $td,
+        };
+      });
 
-  #createTableRows() {
-    const rows: HTMLTableRowElement[] = [];
-    for (const [index, item] of this.#props.data.entries()) {
-      rows.push(this.#createTableRow(item, index));
-    }
-    return rows;
-  }
-
-  private reloadColumns() {
-    this.#columnsContainer?.replaceChildren(this.#createTableHeaders());
-  }
-
-  private reloadRows() {
-    this.#dataRowsContainer?.replaceChildren(...this.#createTableRows());
+      this.#dom.rows.splice(index, 0, {
+        id: ref,
+        $: $tr,
+        cells,
+      });
+    });
   }
 
   constructor() {
@@ -103,27 +148,32 @@ export class SimpleCustomTable extends HTMLElement {
     $table.appendChild($tbody);
     this.#shadow.appendChild($table);
 
-    this.#columnsContainer = $thead;
     this.#dataRowsContainer = $tbody;
+    this.#columnsContainer = document.createElement('tr');
+    $thead.appendChild(this.#columnsContainer);
   }
+
+  // Biding attrs
 
   get columns() {
     return this.#props.columns;
   }
 
   set columns(value: SimpleCustomTableColumn[]) {
+    this.updateColumns(this.#props.columns, value);
     this.#props.columns = value;
-    this.reloadColumns();
-    this.reloadRows();
+    this.updateRows([], this.#props.data);
   }
 
   get data() {
     return this.#props.data;
   }
 
-  set data(value: Record<string, unknown>[]) {
+  set data(value: SimpleCustomTableItem[]) {
+    if (this.columns.length) {
+      this.updateRows(this.#props.data, value);
+    }
     this.#props.data = value;
-    this.reloadRows();
   }
 }
 

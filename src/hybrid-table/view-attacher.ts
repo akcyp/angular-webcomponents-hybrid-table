@@ -1,19 +1,23 @@
 import { EmbeddedViewRef, TemplateRef, ViewContainerRef } from '@angular/core';
-import type { SimpleCustomTableColumn, SimpleCustomTableItem } from '../webcomponents/simple-custom-table.model';
+import type {
+  SimpleCustomTableColumn,
+  SimpleCustomTableItem,
+  TableElement,
+} from '../webcomponents/simple-custom-table.model';
 
 const attachSymbol = Symbol();
-const attachAngularViewToHTMLElement = (element: HTMLElement | DocumentFragment, view: EmbeddedViewRef<any>) => {
+const assignAngularViewToHTMLElement = (element: TableElement, view: EmbeddedViewRef<any>) => {
   (element as any)[attachSymbol] = view;
 };
-const detachAngularViewFromHTMLElement = (element: HTMLElement | DocumentFragment) => {
+const unassignAngularViewFromHTMLElement = (element: TableElement) => {
   (element as any)[attachSymbol] = undefined;
 };
-const getAngularViewFromHTMLElement = (element: HTMLElement | DocumentFragment) => {
+const getAssignedAngularViewFromHTMLElement = (element: TableElement) => {
   return (element as any)[attachSymbol] as EmbeddedViewRef<any>;
 };
 
 const attachEmbeddedViewToHTMLElement = <C>(
-  element: HTMLElement | DocumentFragment,
+  element: TableElement,
   vcr: ViewContainerRef,
   templateRef: TemplateRef<C>,
   context: C
@@ -21,18 +25,21 @@ const attachEmbeddedViewToHTMLElement = <C>(
   const embeddedView = templateRef.createEmbeddedView(context);
   vcr.insert(embeddedView);
   embeddedView.onDestroy(() => {
+    // Old angular versions does not support automatic detach
     const index = vcr.indexOf(embeddedView);
-    vcr.remove(index);
+    if (index > -1) {
+      vcr.remove(index);
+    }
   });
   element.append(...embeddedView.rootNodes);
-  attachAngularViewToHTMLElement(element, embeddedView);
+  assignAngularViewToHTMLElement(element, embeddedView);
   return embeddedView;
 };
 
-const detachEmbeddedViewFromHTMLElement = <C>(element: HTMLElement | DocumentFragment, view: EmbeddedViewRef<C>) => {
+const detachEmbeddedViewFromHTMLElement = <C>(element: TableElement, view: EmbeddedViewRef<C>) => {
   view.destroy();
-  view.rootNodes.forEach((node) => element.removeChild(node));
-  detachAngularViewFromHTMLElement(element);
+  view.rootNodes.forEach((node) => (node as HTMLElement).parentNode?.removeChild(node));
+  unassignAngularViewFromHTMLElement(element);
 };
 
 export const convertCellTemplate = (
@@ -48,12 +55,12 @@ export const convertCellTemplate = (
     updateCell(props, rowIndex, cell) {
       const context = { $implicit: props };
       const view =
-        getAngularViewFromHTMLElement(cell) ?? attachEmbeddedViewToHTMLElement(cell, vcr, templateRef, context);
-      view.context = context;
+        getAssignedAngularViewFromHTMLElement(cell) ?? attachEmbeddedViewToHTMLElement(cell, vcr, templateRef, context);
+      Object.assign(view.context, context);
       view.detectChanges();
     },
     removeCell(cell) {
-      const view = getAngularViewFromHTMLElement(cell);
+      const view = getAssignedAngularViewFromHTMLElement(cell);
       if (!view) return;
       detachEmbeddedViewFromHTMLElement(cell, view);
     },
@@ -71,12 +78,12 @@ export const convertHeaderCellTemplate = (
     updateHeader(cell) {
       const context = {};
       const view =
-        getAngularViewFromHTMLElement(cell) ?? attachEmbeddedViewToHTMLElement(cell, vcr, templateRef, context);
-      view.context = context;
+        getAssignedAngularViewFromHTMLElement(cell) ?? attachEmbeddedViewToHTMLElement(cell, vcr, templateRef, context);
+      Object.assign(view.context, context);
       view.detectChanges();
     },
     removeHeader(cell) {
-      const view = getAngularViewFromHTMLElement(cell);
+      const view = getAssignedAngularViewFromHTMLElement(cell);
       if (!view) return;
       detachEmbeddedViewFromHTMLElement(cell, view);
     },

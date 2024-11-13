@@ -1,8 +1,9 @@
+export type TableElement = HTMLElement | DocumentFragment;
+
 export interface SimpleCustomTableItem {
+  id: string;
   [k: string]: unknown;
 }
-
-type TableElement = HTMLElement | DocumentFragment;
 
 export interface SimpleCustomTableColumn {
   prop: string;
@@ -20,4 +21,20 @@ export interface SimpleCustomTableColumn {
 export interface SimpleCustomTableProps {
   columns: SimpleCustomTableColumn[];
   data: SimpleCustomTableItem[];
+}
+
+interface TableDOMCell {
+  prop: string;
+  $: TableElement;
+}
+
+interface TableDOMRow {
+  id: string;
+  $: TableElement;
+  cells: TableDOMCell[];
+}
+
+export interface TableDOM {
+  headers: TableDOMCell[];
+  rows: TableDOMRow[];
 }
