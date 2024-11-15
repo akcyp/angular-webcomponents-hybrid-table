@@ -50,19 +50,20 @@ export const convertCellTemplate = (
 ): Pick<SimpleCustomTableColumn, 'renderCell' | 'updateCell' | 'removeCell'> => {
   return {
     renderCell(props, rowIndex) {
-      return document.createDocumentFragment();
+      const fragment = document.createDocumentFragment();
+      attachEmbeddedViewToHTMLElement(fragment, vcr, templateRef, { $implicit: props });
+      return fragment;
     },
-    updateCell(props, rowIndex, cell) {
+    updateCell(props, rowIndex, fragment) {
       const context = { $implicit: props };
-      const view =
-        getAssignedAngularViewFromHTMLElement(cell) ?? attachEmbeddedViewToHTMLElement(cell, vcr, templateRef, context);
+      const view = getAssignedAngularViewFromHTMLElement(fragment);
       Object.assign(view.context, context);
       view.detectChanges();
     },
-    removeCell(cell) {
-      const view = getAssignedAngularViewFromHTMLElement(cell);
+    removeCell(fragment) {
+      const view = getAssignedAngularViewFromHTMLElement(fragment);
       if (!view) return;
-      detachEmbeddedViewFromHTMLElement(cell, view);
+      detachEmbeddedViewFromHTMLElement(fragment, view);
     },
   };
 };
@@ -73,19 +74,20 @@ export const convertHeaderCellTemplate = (
 ): Pick<SimpleCustomTableColumn, 'renderHeader' | 'updateHeader' | 'removeHeader'> => {
   return {
     renderHeader() {
-      return document.createDocumentFragment();
+      const fragment = document.createDocumentFragment();
+      attachEmbeddedViewToHTMLElement(fragment, vcr, templateRef, {});
+      return fragment;
     },
-    updateHeader(cell) {
+    updateHeader(fragment) {
       const context = {};
-      const view =
-        getAssignedAngularViewFromHTMLElement(cell) ?? attachEmbeddedViewToHTMLElement(cell, vcr, templateRef, context);
+      const view = getAssignedAngularViewFromHTMLElement(fragment);
       Object.assign(view.context, context);
       view.detectChanges();
     },
-    removeHeader(cell) {
-      const view = getAssignedAngularViewFromHTMLElement(cell);
+    removeHeader(fragment) {
+      const view = getAssignedAngularViewFromHTMLElement(fragment);
       if (!view) return;
-      detachEmbeddedViewFromHTMLElement(cell, view);
+      detachEmbeddedViewFromHTMLElement(fragment, view);
     },
   };
 };

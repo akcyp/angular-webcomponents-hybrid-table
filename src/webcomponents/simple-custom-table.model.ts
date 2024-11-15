@@ -22,19 +22,3 @@ export interface SimpleCustomTableProps {
   columns: SimpleCustomTableColumn[];
   data: SimpleCustomTableItem[];
 }
-
-interface TableDOMCell {
-  prop: string;
-  $: TableElement;
-}
-
-interface TableDOMRow {
-  id: string;
-  $: TableElement;
-  cells: TableDOMCell[];
-}
-
-export interface TableDOM {
-  headers: TableDOMCell[];
-  rows: TableDOMRow[];
-}

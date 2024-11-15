@@ -1,6 +1,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SimpleCustomTableColumn } from '../webcomponents/simple-custom-table.model';
 import { HybridTableModule } from '../hybrid-table/hybrid-table.module';
+import { CommonModule } from '@angular/common';
 
 export interface PeriodicElement {
   id: string;
@@ -23,59 +24,77 @@ const ELEMENT_DATA: PeriodicElement[] = [
   { id: 'Ne', position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne' },
 ];
 
+const COLUMNS: SimpleCustomTableColumn[] = [
+  {
+    prop: 'position',
+    header: '#',
+  },
+  {
+    prop: 'name',
+    header: 'Name',
+    renderHeader: () => {
+      const header = document.createElement('th');
+      header.style.color = 'lime';
+      header.appendChild(document.createTextNode('Name'));
+      return header;
+    },
+  },
+  {
+    prop: 'weight',
+    header: 'Weight',
+    renderCell: (item, rowIndex) => {
+      const td = document.createElement('td');
+      const value = (item['weight'] as number)?.toFixed(2);
+      td.appendChild(document.createTextNode(value));
+      return td;
+    },
+    updateCell: (item, rowIndex, cell) => {
+      const value = (item['weight'] as number)?.toFixed(2);
+      cell.replaceChildren(document.createTextNode(value));
+    },
+  },
+  {
+    prop: 'symbol',
+    header: 'Symbol',
+  },
+];
+
 @Component({
   selector: 'app-root',
   standalone: true,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  imports: [HybridTableModule],
+  imports: [CommonModule, HybridTableModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppComponent {
   title = 'angular-webcomponents-table-integration';
 
-  visibleElements = 5;
-  data = ELEMENT_DATA.slice(0, 5);
-  columns: SimpleCustomTableColumn[] = [
-    {
-      prop: 'position',
-      header: '#',
-    },
-    {
-      prop: 'name',
-      header: 'Name',
-      renderHeader: () => {
-        const header = document.createElement('th');
-        header.style.color = 'lime';
-        return header;
-      },
-    },
-    {
-      prop: 'weight',
-      header: 'Weight',
-      renderCell: (item, rowIndex) => {
-        const td = document.createElement('td');
-        return td;
-      },
-      updateCell: (item, rowIndex, cell) => {
-        const value = (item['weight'] as number)?.toFixed(2);
-        cell.replaceChildren(document.createTextNode(value));
-      },
-    },
-    {
-      prop: 'symbol',
-      header: 'Symbol',
-    },
-  ];
+  visibleRows = 5;
+  maxRowsLength = ELEMENT_DATA.length;
+  visibleColumns = 3;
+  maxColumnsLenght = COLUMNS.length;
 
-  addItem() {
-    this.visibleElements =
-      this.visibleElements >= ELEMENT_DATA.length ? this.visibleElements : this.visibleElements + 1;
-    this.data = ELEMENT_DATA.slice(0, this.visibleElements);
+  data = ELEMENT_DATA.slice(0, this.visibleRows);
+  columns = COLUMNS.slice(0, this.visibleColumns);
+
+  changeRowsNumber(action: 'add' | 'remove') {
+    const value = action === 'add' ? 1 : -1;
+    const newLength = this.data.length + value;
+    if (newLength < 0 || newLength > ELEMENT_DATA.length) {
+      return;
+    }
+    this.visibleRows = newLength;
+    this.data = ELEMENT_DATA.slice(0, newLength);
   }
 
-  removeItem() {
-    this.visibleElements = this.visibleElements <= 0 ? this.visibleElements : this.visibleElements - 1;
-    this.data = ELEMENT_DATA.slice(0, this.visibleElements);
+  changeColumnsNumber(action: 'add' | 'remove') {
+    const value = action === 'add' ? 1 : -1;
+    const newLength = this.columns.length + value;
+    if (newLength < 0 || newLength > COLUMNS.length) {
+      return;
+    }
+    this.visibleColumns = newLength;
+    this.columns = COLUMNS.slice(0, newLength);
   }
 }

@@ -1,7 +1,21 @@
 <div class="controls">
-  <button (click)="addItem()">Add item</button>
-  <button (click)="removeItem()">Remove item</button>
+  <button (click)="changeRowsNumber('add')">Add item</button>
+  <button (click)="changeRowsNumber('remove')">Remove item</button>
 </div>
+
+<div class="controls">
+  <button (click)="changeColumnsNumber('add')">Add column</button>
+  <button (click)="changeColumnsNumber('remove')">Remove column</button>
+</div>
+
+<div>
+  Items visible: {{ visibleRows }} / {{ maxRowsLength }}
+</div>
+<div>
+  Columns visible: {{ visibleColumns }} / {{ maxColumnsLenght }}
+</div>
+
+<br>
 
 <div class="row">
   <div class="column">
@@ -12,11 +26,11 @@
   <div class="column">
     With directive:
     <simple-custom-table [data]="data" hybrid-table>
-      <ng-container hybridColumnDef="position">
+      <ng-container *ngIf="visibleColumns > 0" hybridColumnDef="position">
         <th *hybridHeaderCellDef>#</th>
         <td *hybridCellDef="let item">{{item.position}}</td>
       </ng-container>
-      <ng-container hybridColumnDef="name">
+      <ng-container *ngIf="visibleColumns > 1" hybridColumnDef="name">
         <th *hybridHeaderCellDef>
           <p style="color: lime">
             Name
@@ -24,13 +38,13 @@
         </th>
         <td *hybridCellDef="let item">{{item.name}}</td>
       </ng-container>
-      <ng-container hybridColumnDef="weight">
+      <ng-container *ngIf="visibleColumns > 2" hybridColumnDef="weight">
         <th *hybridHeaderCellDef>Weight</th>
         <td *hybridCellDef="let item">
           {{ (+item.weight).toFixed(2) }}
         </td>
       </ng-container>
-      <ng-container hybridColumnDef="symbol">
+      <ng-container *ngIf="visibleColumns > 3" hybridColumnDef="symbol">
         <th *hybridHeaderCellDef>Symbol</th>
         <td *hybridCellDef="let item">{{item.symbol}}</td>
       </ng-container>

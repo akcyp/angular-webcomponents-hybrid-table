@@ -4,9 +4,10 @@ import { createElementWithContent } from './create-element-with-content';
 // Header cell
 
 export const createTableHeader = (column: SimpleCustomTableColumn) => {
-  const $th = column.renderHeader ? column.renderHeader() : createElementWithContent('th', column.header);
-  column.updateHeader?.($th);
-  return $th;
+  if (column.renderHeader) {
+    return column.renderHeader();
+  }
+  return createElementWithContent('th', column.header);
 };
 
 export const updateTableHeader = ($th: TableElement, column: SimpleCustomTableColumn) => {
@@ -20,18 +21,20 @@ export const updateTableHeader = ($th: TableElement, column: SimpleCustomTableCo
 };
 
 export const destroyTableHeader = ($th: TableElement, column: SimpleCustomTableColumn) => {
-  column.removeHeader?.($th);
+  if (column.removeHeader) {
+    column.removeHeader($th);
+    return;
+  }
+  $th.parentNode?.removeChild($th);
 };
 
 // Row cell
 
 export const createTableCell = (column: SimpleCustomTableColumn, rowIndex: number, value: SimpleCustomTableItem) => {
-  const $td = column.renderCell
-    ? column.renderCell(value, rowIndex)
-    : createElementWithContent('td', value[column.prop]);
-
-  column.updateCell?.(value, rowIndex, $td);
-  return $td;
+  if (column.renderCell) {
+    return column.renderCell(value, rowIndex);
+  }
+  return createElementWithContent('td', value[column.prop]);
 };
 
 export const updateTableCell = (
@@ -50,5 +53,9 @@ export const updateTableCell = (
 };
 
 export const destroyTableCell = ($td: TableElement, column: SimpleCustomTableColumn) => {
-  column.removeCell?.($td);
+  if (column.removeCell) {
+    column.removeCell($td);
+    return;
+  }
+  $td.parentNode?.removeChild($td);
 };
