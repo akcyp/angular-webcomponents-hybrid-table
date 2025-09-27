@@ -30,13 +30,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --force
       - name: build
-        run: npm run build
+        run: npm run build:ci
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'dist'
+          path: 'dist/angular-webcomponents-table-integration/browser'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
