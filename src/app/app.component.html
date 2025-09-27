@@ -1,53 +1,51 @@
-<div class="controls">
-  <button (click)="changeRowsNumber('add')">Add item</button>
-  <button (click)="changeRowsNumber('remove')">Remove item</button>
-</div>
-
-<div class="controls">
-  <button (click)="changeColumnsNumber('add')">Add column</button>
-  <button (click)="changeColumnsNumber('remove')">Remove column</button>
-</div>
-
-<div>
-  Items visible: {{ visibleRows }} / {{ maxRowsLength }}
-</div>
-<div>
-  Columns visible: {{ visibleColumns }} / {{ maxColumnsLenght }}
-</div>
-
-<br>
-
-<div class="row">
-  <div class="column">
-    Native:
-    <simple-custom-table [columns]="columns" [data]="data"></simple-custom-table>
+<div class="p-4">
+  <div class="p-4 text-sm text-gray-800 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-300">
+    <div>Items visible: {{ visibleRows }} / {{ maxRowsLength }}</div>
+    <div>Columns visible: {{ visibleColumns }} / {{ maxColumnsLenght }}</div>
   </div>
 
-  <div class="column">
-    With directive:
-    <simple-custom-table [data]="data" hybrid-table>
-      <ng-container *ngIf="visibleColumns > 0" hybridColumnDef="position">
-        <th *hybridHeaderCellDef>#</th>
-        <td *hybridCellDef="let item">{{item.position}}</td>
-      </ng-container>
-      <ng-container *ngIf="visibleColumns > 1" hybridColumnDef="name">
-        <th *hybridHeaderCellDef>
-          <p style="color: lime">
-            Name
-          </p>
-        </th>
-        <td *hybridCellDef="let item">{{item.name}}</td>
-      </ng-container>
-      <ng-container *ngIf="visibleColumns > 2" hybridColumnDef="weight">
-        <th *hybridHeaderCellDef>Weight</th>
-        <td *hybridCellDef="let item">
-          {{ (+item.weight).toFixed(2) }}
-        </td>
-      </ng-container>
-      <ng-container *ngIf="visibleColumns > 3" hybridColumnDef="symbol">
-        <th *hybridHeaderCellDef>Symbol</th>
-        <td *hybridCellDef="let item">{{item.symbol}}</td>
-      </ng-container>
-    </simple-custom-table>
+  <div>
+    <button (click)="changeRowsNumber('add')">Add item</button>
+    <button (click)="changeRowsNumber('remove')" class="bg-red-500">Remove item</button>
+  </div>
+
+  <div>
+    <button (click)="changeColumnsNumber('add')">Add column</button>
+    <button (click)="changeColumnsNumber('remove')" class="bg-red-500">Remove column</button>
+  </div>
+
+  <div class="flex gap-4">
+    <div class="w-1/2">
+      Native:
+      <simple-custom-table class="pretty-table" [columns]="columns" [data]="data"></simple-custom-table>
+    </div>
+
+    <div class="w-1/2">
+      With directive:
+      <simple-custom-table [data]="data" hybrid-table class="pretty-table">
+        <ng-container *ngIf="visibleColumns > 0" hybridColumnDef="position">
+          <th *hybridHeaderCellDef>#</th>
+          <td *hybridCellDef="let item">{{item.position}}</td>
+        </ng-container>
+        <ng-container *ngIf="visibleColumns > 1" hybridColumnDef="name">
+          <th *hybridHeaderCellDef>
+            <p style="margin: 0; padding: 0; color: lime;">
+              Name
+            </p>
+          </th>
+          <td *hybridCellDef="let item">{{item.name}}</td>
+        </ng-container>
+        <ng-container *ngIf="visibleColumns > 2" hybridColumnDef="weight">
+          <th *hybridHeaderCellDef>Weight</th>
+          <td *hybridCellDef="let item">
+            {{ (+item.weight).toFixed(2) }}
+          </td>
+        </ng-container>
+        <ng-container *ngIf="visibleColumns > 3" hybridColumnDef="symbol">
+          <th *hybridHeaderCellDef>Symbol</th>
+          <td *hybridCellDef="let item">{{item.symbol}}</td>
+        </ng-container>
+      </simple-custom-table>
+    </div>
   </div>
 </div>

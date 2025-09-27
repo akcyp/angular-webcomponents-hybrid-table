@@ -63,7 +63,6 @@ const COLUMNS: SimpleCustomTableColumn[] = [
   selector: 'app-root',
   standalone: true,
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
   imports: [CommonModule, HybridTableModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
